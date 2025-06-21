@@ -58,6 +58,10 @@ response = requests.post(
                             "type": "string",
                             "description": "Full name of the primary insured person"
                         },
+                        "dependent_name": {
+                            "type": "string",
+                            "description": "Name of the person receiving care if different from insured (e.g., child or spouse). Return null if not listed."
+                        },
                         "insurance_company": {
                             "type": "string",
                             "description": "Name of the insurance provider (e.g., Premera Blue Cross, Aetna, Cigna)"
