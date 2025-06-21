@@ -6,7 +6,7 @@ def image_to_base64(image_path):
     with open(image_path, "rb") as img:
         return base64.b64encode(img.read()).decode("utf-8")
 
-base64_image = image_to_base64("image2.jpeg")
+base64_image = image_to_base64("image3.jpeg")
 
 print("Sending request to Llama API...")
 response = requests.post(
