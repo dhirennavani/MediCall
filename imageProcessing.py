@@ -60,7 +60,7 @@ response = requests.post(
                         },
                         "dependent_name": {
                             "type": "string",
-                            "description": "Name of the person receiving care if different from insured (e.g., child or spouse). Return null if not listed."
+                            "description": "Name of the person receiving care if different from insured (e.g., child or spouse). Might sayReturn null if not listed."
                         },
                         "insurance_company": {
                             "type": "string",
@@ -86,7 +86,8 @@ response = requests.post(
                     "required": [
                         "member_id",
                         "insured_name",
-                        "insurance_company"
+                        "insurance_company",
+                        "dependent_name"
                     ]
                 }
             }
