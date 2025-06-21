@@ -1,12 +1,10 @@
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
 from livekit import agents
 from livekit.agents import AgentSession, Agent, RoomInputOptions
 from livekit.plugins import (
     openai,
-    cartesia,
-    deepgram,
     noise_cancellation,
     silero,
 )
@@ -25,9 +23,8 @@ class Assistant(Agent):
 async def entrypoint(ctx: agents.JobContext):
     session = AgentSession(
         stt=openai.STT(model="gpt-4o-transcribe", language="en"),
-        llm=openai.LLM(model="gpt-4o-mini"),
-        tts=openai.TTS(model="gpt-4o-mini-tts", voice="ash",
-    instructions="Speak in a friendly and conversational tone.",),
+        llm=openai.LLM(model=os.getenv("LLAMA_MODEL"), base_url=os.getenv("LLAMA_OPENAI_BASE_URL"), api_key=os.getenv("LLAMA_OPENAI_API_KEY")),
+        tts=openai.TTS(model="gpt-4o-mini-tts", voice="ash", instructions="Speak in a friendly and conversational tone.",),
         vad=silero.VAD.load(),
         turn_detection=MultilingualModel(),
     )
