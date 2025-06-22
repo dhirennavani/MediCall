@@ -1,3 +1,4 @@
+from dotenv import load_dotenv
 import requests
 import re
 import os 
@@ -5,7 +6,7 @@ import base64
 import json
 import time
 from callout import batch_call_doctors, make_appointment_call
-
+load_dotenv()
 serp_api_key = os.getenv("SERP_API_KEY")
 # Replace with your actual SerpAPI key
 endpoint = "https://serpapi.com/search"
@@ -215,6 +216,7 @@ def main():
     print("-" * 50)
 
     insurance_details = get_inurance_card_data()
+    print(f"Insurance details: {insurance_details}")
     insurance_provider = insurance_details.get("insurance_company", "")
     insurance_id = insurance_details.get("member_id", "")
     insurer_name = insurance_details.get("insurance_company", "")
@@ -247,6 +249,7 @@ def main():
     
     # Option 1: Call doctors one by one
     for doctor in doctors[0:1]:
+        print(f"Doctor: {doctor}")
         print(f"Trying to book appointment with {doctor['title']} at {doctor['address']} for {dependent_name} with ({insurance_provider})")
         result = make_appointment_call(doctor, patient_info, insurance_info)
         print(f"Result: {result}")

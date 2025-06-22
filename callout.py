@@ -33,12 +33,12 @@ def make_appointment_call(doctor_info, patient_info, insurance_info):
     
     # Here you would integrate with a service like Twilio, Bland AI, or similar
     # For now, we'll simulate the call process
-    
+    print(f"Generating call script for the call. {doctor_info} {patient_info} {insurance_info}")
     call_script = generate_call_script(doctor_info, patient_info, insurance_info)
     
     # Simulate call execution
     # call_result = simulate_call_execution(phone_number, call_script)
-    
+    print(call_script)
     call_result = integrate_with_calling_service("+14804340661", call_script)
 
     return call_result
@@ -84,7 +84,8 @@ def generate_call_script(doctor_info, patient_info, insurance_info):
         6.  **Contingency:** If the office is not accepting new patients, politely thank them and end the call.
 
         **Your Persona:**
-        - Be friendly, patient, and professional.
+        - Do not repeat yourself.
+        - Be patient, and professional.
         - Speak clearly and concisely.
         - If you don't understand something, it's okay to ask for clarification.
         - If you are not able to book an appointment, thank them and end the call.
