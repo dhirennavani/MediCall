@@ -1,8 +1,10 @@
 import os
 import requests
+import asyncio
 import json
 import time
 from datetime import datetime
+from calloutbound import create_outbound_call
 
 def make_appointment_call(doctor_info, patient_info, insurance_info):
     """
@@ -136,12 +138,17 @@ def simulate_call_execution(phone_number, script):
 
 def integrate_with_calling_service(phone_number, script):
     """
-    Placeholder for integration with actual calling services like:
-    - Twilio Voice API
-    - Bland AI
-    - Vapi
-    - OpenAI Realtime API
+    Integration with actual calling services
     """
+    
+    try:
+        # Call the create_outbound_call function
+        result = asyncio.run(create_outbound_call(phone_number, script))
+
+        return result
+    except Exception as e:
+        print(f"❌ Error creating outbound call: {e}")
+        return None
     
     # Example Twilio integration (commented out):
     """

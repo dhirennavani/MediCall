@@ -20,7 +20,7 @@ load_dotenv()
 
 
 
-async def create_outbound_call(phone_number: str):
+async def create_outbound_call(phone_number: str, script: str):
     """
     Create an outbound call using agent dispatch.
     
@@ -31,7 +31,7 @@ async def create_outbound_call(phone_number: str):
     
     try:
         room_name = f"outbound-{''.join(str(random.randint(0, 9)) for _ in range(10))}"
-        metadata_json = json.dumps({"phone_number": phone_number})
+        metadata_json = json.dumps({"phone_number": phone_number, "script": script})
 
         print(f"Attempting to dispatch agent for phone number: {phone_number} in room: {room_name}")
         print(f"Dispatch metadata: {metadata_json}")

@@ -95,7 +95,8 @@ async def entrypoint(ctx: agents.JobContext):
             return
 
     phone_number = dial_info.get("phone_number")
-    
+    script = dial_info.get("script", "Hello, this is your AI assistant. How can I help you today?")
+    print(script)
     if phone_number:
         sip_participant_identity = phone_number 
         print(f"Attempting to create SIP participant for phone number: {phone_number}")
