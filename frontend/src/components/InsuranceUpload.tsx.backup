@@ -3,7 +3,7 @@ import { Upload, FileText, CheckCircle, Camera, ArrowRight, MessageSquare } from
 import { extractQueryStructure } from '../services/llamaService';
 
 interface InsuranceUploadProps {
-  onBookingComplete: (details: any, insurance?: any, call?: any) => void;
+  onBookingComplete: (details: any, insurance?: any) => void;
 }
 
 export default function InsuranceUpload({ onBookingComplete }: InsuranceUploadProps) {
@@ -71,7 +71,7 @@ export default function InsuranceUpload({ onBookingComplete }: InsuranceUploadPr
       const result = await response.json();
 
       if (result.message === "Appointment successfully found" && result.appointment_details) {
-        onBookingComplete(result.appointment_details, result.insurance_details, result.call_result);
+        onBookingComplete(result.appointment_details, result.insurance_details);
       } else {
         throw new Error(result.message || "Failed to book appointment.");
       }

@@ -4,7 +4,7 @@ import asyncio
 import json
 import time
 from datetime import datetime
-from calloutbound import create_outbound_call
+# from calloutbound import create_outbound_call
 
 def make_appointment_call(doctor_info, patient_info, insurance_info):
     """
@@ -35,13 +35,13 @@ def make_appointment_call(doctor_info, patient_info, insurance_info):
     # For now, we'll simulate the call process
     print(f"Generating call script for the call. {doctor_info} {patient_info} {insurance_info}")
     call_script = generate_call_script(doctor_info, patient_info, insurance_info)
-    
+    print(call_script)
     # Simulate call execution
     # call_result = simulate_call_execution(phone_number, call_script)
     print(call_script)
     call_result = integrate_with_calling_service("+14804340661", call_script)
 
-    return call_result
+    return None
 
 def generate_call_script(doctor_info, patient_info, insurance_info):
     """Generate a script for the appointment booking call"""

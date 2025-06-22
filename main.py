@@ -108,7 +108,7 @@ def image_to_base64(image_path):
     with open(image_path, "rb") as img:
         return base64.b64encode(img.read()).decode("utf-8")
 
-def get_inurance_card_data():
+def get_insurance_card_data():
     base64_image = image_to_base64("image3.jpeg")
     response = requests.post(
         url="https://api.llama.com/v1/chat/completions",
