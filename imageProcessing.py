@@ -1,6 +1,7 @@
 import os
 import requests
 import base64
+import json
 
 def image_to_base64(image_path):
     with open(image_path, "rb") as img:
@@ -94,5 +95,21 @@ response = requests.post(
         }
     }
 )
+print("Got response from Llama API:")
+print(response.status_code)
+response_data = response.json()
 
-print(response.json())
+
+# Extract and print the text content
+if 'completion_message' in response_data and 'content' in response_data['completion_message']:
+    extracted_text = response_data['completion_message']['content']['text']
+    print("\nExtracted text:")
+    print(extracted_text)
+    
+    # Parse the JSON text
+    try:
+        parsed_data = json.loads(extracted_text)
+        print(f"\nMember ID: {parsed_data.get('member_id')}")
+    except json.JSONDecodeError as e:
+        print(f"Error parsing JSON: {e}")
+
