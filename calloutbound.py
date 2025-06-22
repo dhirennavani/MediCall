@@ -58,4 +58,4 @@ async def create_outbound_call(phone_number: str):
 
 
 if __name__ == "__main__":
-    asyncio.run(create_outbound_call("<phone number>"))
+    asyncio.run(create_outbound_call(""))
