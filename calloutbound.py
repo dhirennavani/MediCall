@@ -27,6 +27,7 @@ async def create_outbound_call(phone_number: str, script: str):
     Args:
         phone_number (str): The phone number to call
     """
+    print(f"Creating outbound call for phone number: {phone_number} with script: {script}")
     lkapi = api.LiveKitAPI()
     
     try:

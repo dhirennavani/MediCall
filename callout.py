@@ -37,8 +37,10 @@ def make_appointment_call(doctor_info, patient_info, insurance_info):
     call_script = generate_call_script(doctor_info, patient_info, insurance_info)
     
     # Simulate call execution
-    call_result = simulate_call_execution(phone_number, call_script)
+    # call_result = simulate_call_execution(phone_number, call_script)
     
+    call_result = integrate_with_calling_service(phone_number, call_script)
+
     return call_result
 
 def generate_call_script(doctor_info, patient_info, insurance_info):
@@ -143,6 +145,7 @@ def integrate_with_calling_service(phone_number, script):
     
     try:
         # Call the create_outbound_call function
+        print("📞 Integrating with calling service...")
         result = asyncio.run(create_outbound_call(phone_number, script))
 
         return result
