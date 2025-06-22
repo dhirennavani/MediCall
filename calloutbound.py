@@ -54,8 +54,8 @@ async def create_outbound_call(phone_number: str):
         print(f"Code: {e.code}, Metadata: {e.metadata}")
     finally:
         # Properly close the client session to avoid unclosed session warnings
-        await lkapi.acloseclose()
+        await lkapi.aclose()
 
 
 if __name__ == "__main__":
-    asyncio.run(create_outbound_call("<phone number>"))
+    asyncio.run(create_outbound_call("+14804340661"))
