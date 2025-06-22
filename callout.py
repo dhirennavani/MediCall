@@ -42,23 +42,51 @@ def make_appointment_call(doctor_info, patient_info, insurance_info):
 def generate_call_script(doctor_info, patient_info, insurance_info):
     """Generate a script for the appointment booking call"""
     
-    script = f"""
-    Hello, I'm calling to schedule an appointment for {patient_info.get('name', 'a patient')}.
+    # script = f"""
+    # Hello, I'm calling to schedule an appointment for {patient_info.get('name', 'a patient')}.
     
-    Patient Information:
-    - Name: {patient_info.get('name', 'Not provided')}
-    - Insurance: {insurance_info.get('insurance_company', 'Not provided')}
-    - Member ID: {insurance_info.get('member_id', 'Not provided')}
-    - Plan Type: {insurance_info.get('plan_type', 'Not specified')}
+    # Patient Information:
+    # - Name: {patient_info.get('name', 'Not provided')}
+    # - Insurance: {insurance_info.get('insurance_company', 'Not provided')}
+    # - Member ID: {insurance_info.get('member_id', 'Not provided')}
+    # - Plan Type: {insurance_info.get('plan_type', 'Not specified')}
     
-    We're looking for the earliest available appointment for a {patient_info.get('appointment_type', 'general consultation')}.
+    # We're looking for the earliest available appointment for a {patient_info.get('appointment_type', 'general consultation')}.
     
-    Preferred times: {patient_info.get('preferred_times', 'Flexible with scheduling')}
+    # Preferred times: {patient_info.get('preferred_times', 'Flexible with scheduling')}
     
-    Is there anything specific I should know about your scheduling process or requirements?
-    """
+    # Is there anything specific I should know about your scheduling process or requirements?
+    # """
+
+    agent_prompt = f"""
+        You are an AI assistant acting as a representative for {insurance_info.get('insured_name', 'Unknown Name')}.
+        Your primary goal is to call the office of {doctor_info.get('title', 'Unknown Doctor')} to schedule a new patient appointment for {insurance_info.get('insured_name', 'Unknown Name')}.
+
+        **Your Task:**
+        You will be connected to the doctor's office. Your task is to navigate the conversation to book an appointment.
+
+        **Patient Information:**
+        {patient_info}
+        **Insurance Details (Provide these when asked):**
+        {insurance_info}
+        **Doctor Information:**
+        {doctor_info}
+        **Conversation Flow:**
+        1.  **Introduction:** When the call is answered, introduce yourself politely. For example: "Hello, my name is Alex. I'm calling to schedule a new patient appointment for {insurance_details['insured_name']}."
+        2.  **State Your Goal:** Clearly state that you are looking to book a new patient appointment with {doctor_name}.
+        3.  **Provide Information:** Answer any questions the receptionist has. Use the insurance details provided above. Be prepared to spell out names and numbers if necessary.
+        4.  **Scheduling:** Find a suitable date and time for the appointment. If you are not given specific availability, you can suggest a general timeframe, like "next Tuesday afternoon."
+        5.  **Confirmation:** Before ending the call, confirm the appointment details: date, time, location, and that the appointment is with {doctor_name}.
+        6.  **Contingency:** If the office is not accepting new patients, politely thank them and end the call.
+
+        **Your Persona:**
+        - Be friendly, patient, and professional.
+        - Speak clearly and concisely.
+        - If you don't understand something, it's okay to ask for clarification.
+        - If you are not able to book an appointment, thank them and end the call.
+        """
     
-    return script.strip()
+    return agent_prompt.strip()
 
 def simulate_call_execution(phone_number, script):
     """Simulate the execution of a phone call"""
