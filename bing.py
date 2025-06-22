@@ -6,6 +6,7 @@ serp_api_key = os.getenv("SERP_API_KEY")
 endpoint = "https://serpapi.com/search"
 
 def serp_search(query, location):
+    print(query, location)
     params = {
         "q": query,
         "location": location,
@@ -15,7 +16,6 @@ def serp_search(query, location):
         "api_key": serp_api_key,
         # Add parameters to get more local results
         "tbm": "lcl",  # Force local search
-        "ll": "@40.7128,-74.0060,14z",  # New York coordinates with zoom
         "near": location,  # Specify near parameter
         "start": 0  # Start from first result
     }
@@ -28,20 +28,17 @@ def extract_phone(text):
     match = re.search(r'(\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4})', text)
     return match.group(1) if match else None
 
-def get_multiple_pages_local_results(query, location, max_pages=3):
+def get_multiple_pages_local_results(query, max_pages=3):
     """Get multiple pages of local results to increase the number of doctors found"""
     all_doctors = []
     
     for page in range(max_pages):
         params = {
             "q": query,
-            "location": location,
             "hl": "en",
             "gl": "us",
             "api_key": serp_api_key,
             "tbm": "lcl",  # Force local search
-            "ll": "@40.7128,-74.0060,14z",  # New York coordinates with zoom
-            "near": location,
             "start": page * 20  # Pagination
         }
         
@@ -95,12 +92,12 @@ def get_multiple_pages_local_results(query, location, max_pages=3):
     return all_doctors
 
 def search_doctors(insurance_provider, location, doctor_type):
-    query = f"{doctor_type} doctors accepting {insurance_provider} insurance"
+    query = f"{doctor_type} doctors accepting {insurance_provider} insurance in {location}"
     
-    print(f"Searching SerpAPI for: {query} in {location}")
+    print(f"Searching SerpAPI for: {query}")
     
     # Use the multi-page function to get more results
-    doctors = get_multiple_pages_local_results(query, location, max_pages=3)
+    doctors = get_multiple_pages_local_results(query, max_pages=3)
     
     if not doctors:
         print("No search results found.")
@@ -111,13 +108,12 @@ def search_doctors(insurance_provider, location, doctor_type):
 
 def main():
     # Sample input — replace with actual values
-    insurance_provider = "Aetna"
+    insurance_provider = "Premera Blue Cross"
     insurance_id = "123456789"
     insurer_name = "Aetna Health Inc."
-    location = "New York, NY"
-    doctor_type = "Primary Care Physician"
+    location = "Hyderabad, India"
+    doctor_type = "pediatrician"
     doctors = search_doctors(insurance_provider, location, doctor_type)
-    doctor_type = "Dermatologist"
     for doctor in doctors:
         print(f"Name: {doctor['title']}")
         print(f"Phone: {doctor['phone']}")
