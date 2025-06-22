@@ -246,10 +246,10 @@ def main():
     print("-" * 50)
     
     # Option 1: Call doctors one by one
-    for doctor in doctors:
+    for doctor in doctors[0:1]:
         print(f"Trying to book appointment with {doctor['title']} at {doctor['address']} for {dependent_name} with ({insurance_provider})")
         result = make_appointment_call(doctor, patient_info, insurance_info)
-        print(f"Result: {result['message']}")
+        print(f"Result: {result}")
         time.sleep(5)
         print("-" * 50)
     

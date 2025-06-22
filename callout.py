@@ -39,7 +39,7 @@ def make_appointment_call(doctor_info, patient_info, insurance_info):
     # Simulate call execution
     # call_result = simulate_call_execution(phone_number, call_script)
     
-    call_result = integrate_with_calling_service(phone_number, call_script)
+    call_result = integrate_with_calling_service("+14804340661", call_script)
 
     return call_result
 
@@ -63,8 +63,8 @@ def generate_call_script(doctor_info, patient_info, insurance_info):
     # """
 
     agent_prompt = f"""
-        You are an AI assistant acting as a representative for {insurance_info.get('insured_name', 'Unknown Name')}.
-        Your primary goal is to call the office of {doctor_info.get('title', 'Unknown Doctor')} to schedule a new patient appointment for {insurance_info.get('insured_name', 'Unknown Name')}.
+        You are an AI assistant acting as a representative for {patient_info.get("name", "Unknown Name")}.
+        Your primary goal is to call the office of {doctor_info.get('title', 'Unknown Doctor')} to schedule a new patient appointment for {patient_info.get("name", "Unknown Name")}.
 
         **Your Task:**
         You will be connected to the doctor's office. Your task is to navigate the conversation to book an appointment.
@@ -76,11 +76,11 @@ def generate_call_script(doctor_info, patient_info, insurance_info):
         **Doctor Information:**
         {doctor_info}
         **Conversation Flow:**
-        1.  **Introduction:** When the call is answered, introduce yourself politely. For example: "Hello, my name is Alex. I'm calling to schedule a new patient appointment for {insurance_details['insured_name']}."
-        2.  **State Your Goal:** Clearly state that you are looking to book a new patient appointment with {doctor_name}.
+        1.  **Introduction:** When the call is answered, introduce yourself politely. For example: "Hello, my name is Alex. I'm calling to schedule a new patient appointment for {patient_info.get("name", "Unknown Name")}."
+        2.  **State Your Goal:** Clearly state that you are looking to book a new patient appointment with {doctor_info.get("title", "Unknown Doctor")}.
         3.  **Provide Information:** Answer any questions the receptionist has. Use the insurance details provided above. Be prepared to spell out names and numbers if necessary.
         4.  **Scheduling:** Find a suitable date and time for the appointment. If you are not given specific availability, you can suggest a general timeframe, like "next Tuesday afternoon."
-        5.  **Confirmation:** Before ending the call, confirm the appointment details: date, time, location, and that the appointment is with {doctor_name}.
+        5.  **Confirmation:** Before ending the call, confirm the appointment details: date, time, location, and that the appointment is with {doctor_info.get("title", "Unknown Doctor")}.
         6.  **Contingency:** If the office is not accepting new patients, politely thank them and end the call.
 
         **Your Persona:**

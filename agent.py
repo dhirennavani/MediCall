@@ -23,8 +23,8 @@ print("Agent script starting...")
 
 # Define your agent's core behavior
 class Assistant(Agent):
-    def __init__(self) -> None:
-        super().__init__(instructions="You are a helpful voice AI assistant.")
+    def __init__(self, script) -> None:
+        super().__init__(instructions=script)
         print("Assistant agent initialized.")
 
 
@@ -39,6 +39,18 @@ async def entrypoint(ctx: agents.JobContext):
     llama_model = os.getenv("LLAMA_MODEL")
     llama_base_url = os.getenv("LLAMA_OPENAI_BASE_URL")
     llama_api_key = os.getenv("LLAMA_OPENAI_API_KEY")
+    print(f"Job Metadata received: {ctx.job.metadata}")
+    dial_info = {}
+    if ctx.job.metadata:
+        try:
+            dial_info = json.loads(ctx.job.metadata)
+        except json.JSONDecodeError as e:
+            print(f"Error decoding job metadata: {e}. Metadata: {ctx.job.metadata}")
+            ctx.shutdown()
+            return
+    phone_number = dial_info.get("phone_number")
+    script = dial_info.get("script", "Hello, this is your AI assistant. How can I help you today?")
+    print(script)
 
     if not all([llama_model, llama_base_url, llama_api_key]):
         print("CRITICAL ERROR: LLAMA_MODEL, LLAMA_OPENAI_BASE_URL, or LLAMA_OPENAI_API_KEY environment variables are not set.")
@@ -66,7 +78,7 @@ async def entrypoint(ctx: agents.JobContext):
         print("Starting AgentSession and connecting agent to room...")
         await session.start(
             room=ctx.room,
-            agent=Assistant(),
+            agent=Assistant(script=script),
             room_input_options=RoomInputOptions(
                 noise_cancellation=noise_cancellation.BVCTelephony(), 
             ),
@@ -84,19 +96,9 @@ async def entrypoint(ctx: agents.JobContext):
     # this part would cause an error. We will re-enable it once basic
     # agent connection is confirmed.
 
-    print(f"Job Metadata received: {ctx.job.metadata}")
-    dial_info = {}
-    if ctx.job.metadata:
-        try:
-            dial_info = json.loads(ctx.job.metadata)
-        except json.JSONDecodeError as e:
-            print(f"Error decoding job metadata: {e}. Metadata: {ctx.job.metadata}")
-            ctx.shutdown()
-            return
+    
 
-    phone_number = dial_info.get("phone_number")
-    script = dial_info.get("script", "Hello, this is your AI assistant. How can I help you today?")
-    print(script)
+    
     if phone_number:
         sip_participant_identity = phone_number 
         print(f"Attempting to create SIP participant for phone number: {phone_number}")
@@ -129,11 +131,11 @@ async def entrypoint(ctx: agents.JobContext):
             return
 
 
-    print("Generating initial greeting for the user.")
-    await session.generate_reply(
-        instructions="Greet the user and offer your assistance."
-    )
-    print("Initial greeting generated.")
+    # print("Generating initial greeting for the user.")
+    # await session.generate_reply(
+    #     instructions="Greet the user and offer your assistance."
+    # )
+    # print("Initial greeting generated.")
 
     # Keep the agent session alive until the room ends
     await ctx.room.wait_closed()
