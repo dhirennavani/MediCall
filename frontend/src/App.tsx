@@ -1,31 +1,38 @@
 import React, { useState } from 'react';
 import InsuranceUpload from './components/InsuranceUpload';
-import ChatInterface from './components/ChatInterface';
+import AppointmentDetails from './components/AppointmentDetails';
+
+interface AppointmentDetailsData {
+    doctor_name: string;
+    specialty: string;
+    location: string;
+    address: string;
+    appointment_time: string;
+    notes: string;
+}
 
 function App() {
-  const [insuranceFile, setInsuranceFile] = useState<File | null>(null);
-  const [currentView, setCurrentView] = useState<'upload' | 'chat'>('upload');
+  const [appointmentDetails, setAppointmentDetails] = useState<AppointmentDetailsData | null>(null);
+  const [currentView, setCurrentView] = useState<'upload' | 'results'>('upload');
 
-  const handleUploadComplete = (file: File) => {
-    setInsuranceFile(file);
-    setTimeout(() => {
-      setCurrentView('chat');
-    }, 500);
+  const handleBookingComplete = (details: AppointmentDetailsData) => {
+    setAppointmentDetails(details);
+    setCurrentView('results');
   };
 
   const handleBackToUpload = () => {
     setCurrentView('upload');
-    setInsuranceFile(null);
+    setAppointmentDetails(null);
   };
 
   return (
     <div className="min-h-screen">
       {currentView === 'upload' ? (
-        <InsuranceUpload onUploadComplete={handleUploadComplete} />
+        <InsuranceUpload onBookingComplete={handleBookingComplete} />
       ) : (
-        insuranceFile && (
-          <ChatInterface 
-            insuranceFile={insuranceFile} 
+        appointmentDetails && (
+          <AppointmentDetails 
+            details={appointmentDetails} 
             onBack={handleBackToUpload}
           />
         )

@@ -1,14 +1,16 @@
 import React, { useCallback, useState } from 'react';
-import { Upload, FileText, CheckCircle, Camera, ArrowRight } from 'lucide-react';
+import { Upload, FileText, CheckCircle, Camera, ArrowRight, MessageSquare } from 'lucide-react';
+import { extractQueryStructure } from '../services/llamaService';
 
 interface InsuranceUploadProps {
-  onUploadComplete: (file: File) => void;
+  onBookingComplete: (details: any) => void;
 }
 
-export default function InsuranceUpload({ onUploadComplete }: InsuranceUploadProps) {
+export default function InsuranceUpload({ onBookingComplete }: InsuranceUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [customerQuery, setCustomerQuery] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -25,141 +27,134 @@ export default function InsuranceUpload({ onUploadComplete }: InsuranceUploadPro
     setIsDragOver(false);
     const files = e.dataTransfer.files;
     if (files.length > 0) {
-      handleFileUpload(files[0]);
+      setSelectedFile(files[0]);
     }
   }, []);
-
-  const handleFileUpload = async (file: File) => {
-    setUploadedFile(file);
-    setIsProcessing(true);
-    
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    setIsProcessing(false);
-    onUploadComplete(file);
-  };
-
+  
   const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      handleFileUpload(files[0]);
+      setSelectedFile(files[0]);
+    }
+  };
+  
+  const handleProcessRequest = async () => {
+    if (!selectedFile) {
+      alert("Please upload an insurance card image.");
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    try {
+      let structuredData;
+      if (customerQuery.trim()) {
+        structuredData = await extractQueryStructure(customerQuery);
+      } else {
+        structuredData = { original_query: "No query provided", doctor_type: "N/A", location: "N/A", date: "N/A", insurance_provider: "N/A" };
+      }
+
+      const blob = selectedFile.slice(0, selectedFile.size, selectedFile.type);
+      const formData = new FormData();
+      formData.append('file', blob, selectedFile.name);
+      formData.append('query_data', JSON.stringify(structuredData));
+      
+      const response = await fetch('http://localhost:8000/upload-insurance', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const result = await response.json();
+
+      if (result.message === "Appointment successfully found" && result.appointment_details) {
+        onBookingComplete(result.appointment_details);
+      } else {
+        throw new Error(result.message || "Failed to book appointment.");
+      }
+      
+    } catch (error) {
+      console.error('Error during booking process:', error);
+      alert('Error during booking process. Please try again.');
+      setIsProcessing(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-6">
       <div className="max-w-2xl w-full">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full mb-6">
-            <FileText className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">MediCall AI</span>
-          </h1>
-          <p className="text-slate-300 text-lg leading-relaxed">
-            Your personal healthcare appointment assistant. Upload your insurance card to get started.
-          </p>
-        </div>
+        {isProcessing ? (
+           <div className="text-center space-y-6">
+             <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-500 rounded-full">
+               <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+             </div>
+             <div>
+               <h3 className="text-xl font-semibold text-white mb-2">Processing Your Request</h3>
+               <p className="text-slate-400">Our AI is analyzing your query and insurance information...</p>
+             </div>
+           </div>
+        ) : (
+          <>
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold text-white mb-4">
+                Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-400">MediCall AI</span>
+              </h1>
+              <p className="text-slate-300 text-lg leading-relaxed">
+                Your personal healthcare appointment assistant.
+              </p>
+            </div>
 
-        <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
-          {!uploadedFile ? (
-            <>
-              <div
-                className={`relative border-2 border-dashed rounded-xl p-12 transition-all duration-300 ${
-                  isDragOver
-                    ? 'border-blue-400 bg-blue-500/10'
-                    : 'border-slate-600 bg-slate-800/30 hover:border-slate-500 hover:bg-slate-800/50'
-                }`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-slate-700 rounded-full mb-6">
-                    <Upload className="w-8 h-8 text-slate-300" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-2">
-                    Upload Your Insurance Card
-                  </h3>
-                  <p className="text-slate-400 mb-6">
-                    Drag and drop your insurance card image, or click to browse
-                  </p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileInput}
-                    className="hidden"
-                    id="file-input"
-                  />
-                  <label
-                    htmlFor="file-input"
-                    className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300 cursor-pointer"
-                  >
-                    <Camera className="w-5 h-5 mr-2" />
-                    Choose File
+            <div className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 shadow-2xl space-y-8">
+              <div>
+                <label className="block text-lg font-medium text-slate-200 mb-3">1. What can we help you with?</label>
+                <textarea
+                  value={customerQuery}
+                  onChange={(e) => setCustomerQuery(e.target.value)}
+                  placeholder="e.g., I need a dermatologist in Boston for a skin check next week"
+                  className="w-full px-4 py-3 bg-slate-700/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label className="block text-lg font-medium text-slate-200 mb-3">2. Upload your insurance card</label>
+                <div
+                  className={`relative border-2 border-dashed rounded-xl p-8 transition-all duration-300 ${
+                    isDragOver ? 'border-blue-400 bg-blue-500/10' : 'border-slate-600'
+                  } ${selectedFile ? 'border-green-500 bg-green-500/10' : ''}`}
+                  onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
+                >
+                  <input type="file" accept="image/*" onChange={handleFileInput} className="hidden" id="file-input" />
+                  <label htmlFor="file-input" className="w-full text-center cursor-pointer">
+                    {selectedFile ? (
+                      <div className="text-green-300 flex flex-col items-center">
+                        <CheckCircle className="w-10 h-10 mb-3" />
+                        <span className="font-semibold">{selectedFile.name}</span>
+                        <span className="text-sm text-slate-400 mt-1">Click to change file</span>
+                      </div>
+                    ) : (
+                      <div className="text-slate-400">
+                        <Upload className="w-10 h-10 mx-auto mb-3" />
+                        <span className="font-semibold text-white">Click to upload or drag & drop</span>
+                        <p className="text-sm mt-1">PNG, JPG, WEBP up to 10MB</p>
+                      </div>
+                    )}
                   </label>
                 </div>
               </div>
               
-              <div className="mt-6 text-center">
-                <p className="text-sm text-slate-400">
-                  Supported formats: JPG, PNG, WEBP • Max size: 10MB
-                </p>
-              </div>
-            </>
-          ) : (
-            <div className="text-center">
-              {isProcessing ? (
-                <div className="space-y-6">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-500 rounded-full">
-                    <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-white mb-2">
-                      Processing Your Insurance Card
-                    </h3>
-                    <p className="text-slate-400">
-                      Our AI is extracting your insurance information...
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-green-500 rounded-full">
-                    <CheckCircle className="w-8 h-8 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-white mb-2">
-                      Insurance Card Processed Successfully!
-                    </h3>
-                    <p className="text-slate-400 mb-6">
-                      We've extracted your insurance details. Ready to book your appointment?
-                    </p>
-                    <div className="bg-slate-700/50 rounded-lg p-4 mb-6">
-                      <p className="text-sm text-slate-300">
-                        <span className="font-medium">File:</span> {uploadedFile.name}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => onUploadComplete(uploadedFile)}
-                      className="inline-flex items-center px-8 py-3 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-medium rounded-lg hover:from-blue-600 hover:to-teal-600 transition-all duration-300"
-                    >
-                      Start Booking
-                      <ArrowRight className="w-5 h-5 ml-2" />
-                    </button>
-                  </div>
-                </div>
-              )}
+              <button
+                onClick={handleProcessRequest}
+                disabled={!selectedFile}
+                className="w-full inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-teal-500 text-white font-bold rounded-lg hover:from-blue-600 hover:to-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+              >
+                Find My Appointment
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </button>
             </div>
-          )}
-        </div>
-        
-        <div className="mt-8 text-center">
-          <p className="text-slate-500 text-sm">
-            Your insurance information is processed securely and never stored permanently
-          </p>
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
