@@ -9,6 +9,7 @@ import re
 import time
 from datetime import datetime
 from typing import Optional
+import sys
 
 # Load environment variables from .env file if it exists
 try:
@@ -122,117 +123,12 @@ def search_doctors(insurance_provider, location, doctor_type):
     print(f"Total unique doctors found: {len(doctors)}")
     return doctors
 
-def generate_call_script(doctor_info, patient_info, insurance_info):
-    """Generate a script for the appointment booking call"""
-    
-    agent_prompt = f"""
-        You are an AI assistant acting as a representative for {patient_info.get("name", "Unknown Name")}.
-        Your primary goal is to call the office of {doctor_info.get('title', 'Unknown Doctor')} to schedule a new patient appointment for {patient_info.get("name", "Unknown Name")}.
+# Add parent directory to path to import callout functions
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-        **Your Task:**
-        You will be connected to the doctor's office. Your task is to navigate the conversation to book an appointment.
-
-        **Patient Information:**
-        {patient_info}
-        **Insurance Details (Provide these when asked):**
-        {insurance_info}
-        **Doctor Information:**
-        {doctor_info}
-        **Conversation Flow:**
-        1.  **Introduction:** When the call is answered, introduce yourself politely. For example: "Hello, my name is Alex. I'm calling to schedule a new patient appointment for {patient_info.get("name", "Unknown Name")}."
-        2.  **State Your Goal:** Clearly state that you are looking to book a new patient appointment with {doctor_info.get("title", "Unknown Doctor")}.
-        3.  **Provide Information:** Answer any questions the receptionist has. Use the insurance details provided above. Be prepared to spell out names and numbers if necessary.
-        4.  **Scheduling:** Find a suitable date and time for the appointment. If you are not given specific availability, you can suggest a general timeframe, like "next Tuesday afternoon."
-        5.  **Confirmation:** Before ending the call, confirm the appointment details: date, time, location, and that the appointment is with {doctor_info.get("title", "Unknown Doctor")}.
-        6.  **Contingency:** If the office is not accepting new patients, politely thank them and end the call.
-
-        **Your Persona:**
-        - Be friendly, patient, and professional.
-        - Speak clearly and concisely.
-        - If you don't understand something, it's okay to ask for clarification.
-        - If you are not able to book an appointment, thank them and end the call.
-        """
-    
-    return agent_prompt.strip()
-
-def simulate_call_execution(phone_number, script):
-    """Simulate the execution of a phone call"""
-    
-    print("📋 Call script prepared:")
-    print("-" * 40)
-    print(script)
-    print("-" * 40)
-    
-    # Simulate call duration
-    print("⏳ Call in progress...")
-    time.sleep(3)
-    
-    # Simulate different call outcomes
-    import random
-    outcomes = [
-        {
-            "status": "success",
-            "message": "Appointment scheduled successfully",
-            "appointment_date": "2024-01-15 10:30 AM",
-            "confirmation_number": f"APPT-{random.randint(1000, 9999)}"
-        },
-        {
-            "status": "voicemail",
-            "message": "Left voicemail with callback request",
-            "follow_up_needed": True
-        },
-        {
-            "status": "busy",
-            "message": "Line busy, will retry later",
-            "retry_scheduled": True
-        },
-        {
-            "status": "no_availability",
-            "message": "No immediate availability, added to waiting list",
-            "waiting_list_position": random.randint(1, 10)
-        }
-    ]
-    
-    result = random.choice(outcomes)
-    result["call_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    result["phone_number"] = phone_number
-    
-    print(f"✅ Call completed: {result['message']}")
-    
-    return result
-
-def make_appointment_call(doctor_info, patient_info, insurance_info):
-    """
-    Make a phone call to schedule an appointment with a doctor
-    
-    Args:
-        doctor_info (dict): Doctor's information including name, phone, address
-        patient_info (dict): Patient information including name, preferred dates
-        insurance_info (dict): Insurance details from the card
-    
-    Returns:
-        dict: Call result with status and details
-    """
-    
-    phone_number = doctor_info.get('phone', '')
-    doctor_name = doctor_info.get('title', 'Unknown Doctor')
-    doctor_address = doctor_info.get('address', 'Unknown Address')
-    
-    print(f"📞 Initiating call to {doctor_name}")
-    print(f"📍 Location: {doctor_address}")
-    print(f"☎️  Phone: {phone_number}")
-    
-    # Simulate call initiation
-    print("🔄 Dialing...")
-    time.sleep(2)
-    
-    call_script = generate_call_script(doctor_info, patient_info, insurance_info)
-    print(call_script)
-    
-    # Simulate call execution
-    call_result = simulate_call_execution(phone_number, call_script)
-    
-    return call_result
+# Import real calling functions
+from callout import make_appointment_call, batch_call_doctors, generate_call_script
+from calloutbound import create_outbound_call
 
 def get_insurance_card_data_from_blob(image_blob):
     """Extract insurance card data from image blob using Llama API"""
@@ -434,6 +330,32 @@ async def upload_insurance(
         for key, value in insurance_details.items():
             print(f"  {key}: {value}")
         
+        # Prepare patient and insurance info for calling
+        # Get patient name from insurance details or frontend query
+        patient_name = None
+        
+        # Try to get name from insurance details first
+        dependent_name = insurance_details.get("dependent_name")
+        insured_name = insurance_details.get("insured_name")
+        
+        if dependent_name and dependent_name != "null" and dependent_name != "N/A":
+            patient_name = dependent_name
+        elif insured_name and insured_name != "null" and insured_name != "N/A":
+            patient_name = insured_name
+        else:
+            # Fallback to frontend query or default
+            patient_name = query_json.get('patient_name', 'Patient')
+        
+        # Debug patient name extraction
+        print(f"\nPATIENT NAME DEBUG:")
+        print(f"  dependent_name: '{insurance_details.get('dependent_name')}' (type: {type(insurance_details.get('dependent_name'))})")
+        print(f"  insured_name: '{insurance_details.get('insured_name')}' (type: {type(insurance_details.get('insured_name'))})")
+        print(f"  frontend patient_name: '{query_json.get('patient_name')}'")
+        print(f"  final patient_name: '{patient_name}'")
+        
+        # Add the resolved patient name to the insurance_details dictionary for the frontend
+        insurance_details['patient_name'] = patient_name
+        
         # Step 2: Use extracted insurance details and frontend query to search for doctors
         insurance_provider = insurance_details.get("insurance_company", "")
         location = query_json.get('location', 'Boston, MA')  # Use location from frontend query
@@ -446,9 +368,8 @@ async def upload_insurance(
         
         doctors = search_doctors(insurance_provider, location, doctor_type)
         
-        # Prepare patient and insurance info for calling
         patient_info = {
-            "name": insurance_details.get("dependent_name", insurance_details.get("insured_name", "Patient")),
+            "name": patient_name,
             "appointment_type": f"{doctor_type} consultation",
             "preferred_times": query_json.get('date', 'Flexible with scheduling')
         }
@@ -488,7 +409,7 @@ async def upload_insurance(
             # Step 3: Make appointment call if requested
             if make_call and selected_doctor.get('phone') != 'N/A':
                 print(f"\nMAKING APPOINTMENT CALL...")
-                call_result = make_appointment_call(selected_doctor, patient_info, insurance_info)
+                call_result = await make_appointment_call(selected_doctor, patient_info, insurance_info)
             elif make_call:
                 print("Cannot make call - no valid phone number available")
         
@@ -533,7 +454,7 @@ async def make_appointment_call_endpoint(
         print("MAKING APPOINTMENT CALL")
         print("=" * 50)
         
-        call_result = make_appointment_call(doctor_info, patient_info, insurance_info)
+        call_result = await make_appointment_call(doctor_info, patient_info, insurance_info)
         
         return {
             "message": "Call completed",
@@ -566,7 +487,7 @@ async def batch_call_doctors_endpoint(
             print(f"{'='*50}")
             
             try:
-                result = make_appointment_call(doctor, patient_info, insurance_info)
+                result = await make_appointment_call(doctor, patient_info, insurance_info)
                 result["doctor_info"] = doctor
                 results.append(result)
                 

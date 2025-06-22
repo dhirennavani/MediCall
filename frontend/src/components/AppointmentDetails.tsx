@@ -33,6 +33,7 @@ interface InsuranceDetailsData {
     group_number?: string;
     insured_name: string;
     dependent_name?: string;
+    patient_name?: string;
     insurance_company: string;
     plan_type?: string;
     customer_service_number?: string;
@@ -133,12 +134,12 @@ export default function AppointmentDetails({ details, insuranceDetails, callResu
                   </div>
               </div>
               
-              {insuranceDetails.dependent_name && (
+              {insuranceDetails.patient_name && insuranceDetails.patient_name !== insuranceDetails.insured_name && (
                 <div className="flex items-start space-x-4">
                     <User className="w-6 h-6 text-green-400 mt-1" />
                     <div>
                         <p className="text-slate-400">Patient Name</p>
-                        <p className="text-lg font-semibold">{insuranceDetails.dependent_name}</p>
+                        <p className="text-lg font-semibold">{insuranceDetails.patient_name}</p>
                     </div>
                 </div>
               )}

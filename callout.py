@@ -4,9 +4,9 @@ import asyncio
 import json
 import time
 from datetime import datetime
-# from calloutbound import create_outbound_call
+from calloutbound import create_outbound_call
 
-def make_appointment_call(doctor_info, patient_info, insurance_info):
+async def make_appointment_call(doctor_info, patient_info, insurance_info):
     """
     Make a phone call to schedule an appointment with a doctor
     
@@ -39,9 +39,9 @@ def make_appointment_call(doctor_info, patient_info, insurance_info):
     # Simulate call execution
     # call_result = simulate_call_execution(phone_number, call_script)
     print(call_script)
-    call_result = integrate_with_calling_service("+14804340661", call_script)
+    call_result = await integrate_with_calling_service("+14259002789", call_script)
 
-    return None
+    return call_result
 
 def generate_call_script(doctor_info, patient_info, insurance_info):
     """Generate a script for the appointment booking call"""
@@ -139,7 +139,7 @@ def simulate_call_execution(phone_number, script):
     
     return result
 
-def integrate_with_calling_service(phone_number, script):
+async def integrate_with_calling_service(phone_number, script):
     """
     Integration with actual calling services
     """
@@ -147,7 +147,7 @@ def integrate_with_calling_service(phone_number, script):
     try:
         # Call the create_outbound_call function
         print("📞 Integrating with calling service...")
-        result = asyncio.run(create_outbound_call(phone_number, script))
+        result = await create_outbound_call(phone_number, script)
 
         return result
     except Exception as e:
@@ -228,7 +228,7 @@ def batch_call_doctors(doctors_list, patient_info, insurance_info):
         print(f"{'='*50}")
         
         try:
-            result = make_appointment_call(doctor, patient_info, insurance_info)
+            result = asyncio.run(make_appointment_call(doctor, patient_info, insurance_info))
             result["doctor_info"] = doctor
             results.append(result)
             
