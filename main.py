@@ -4,6 +4,7 @@ import os
 import base64
 import json
 import time
+from callout import batch_call_doctors, make_appointment_call
 
 serp_api_key = os.getenv("SERP_API_KEY")
 # Replace with your actual SerpAPI key
@@ -221,16 +222,44 @@ def main():
     plan_type = insurance_details.get("plan_type", "General")
     location = "Boston, MA"
     doctor_type = "pediatrician"
+    
     print(f"Found Insurance Provider: {insurance_provider}")
     print("-" * 50)
+    
     doctors = search_doctors(insurance_provider, location, doctor_type)
     print("-" * 50)
+    
+    # Prepare patient info structure
+    patient_info = {
+        "name": dependent_name,
+        "appointment_type": f"{doctor_type} consultation",
+        "preferred_times": "Flexible with scheduling"
+    }
+    
+    # Prepare insurance info structure
+    insurance_info = {
+        "insurance_company": insurance_provider,
+        "member_id": insurance_id,
+        "plan_type": plan_type
+    }
+    
     print("-" * 50)
+    
+    # Option 1: Call doctors one by one
     for doctor in doctors:
         print(f"Trying to book appointment with {doctor['title']} at {doctor['address']} for {dependent_name} with ({insurance_provider})")
-        print(f"Calling Phone: {doctor['phone']}")
+        result = make_appointment_call(doctor, patient_info, insurance_info)
+        print(f"Result: {result['message']}")
         time.sleep(5)
         print("-" * 50)
+    
+    # Option 2: Batch call all doctors (uncomment to use instead)
+    # results = batch_call_doctors(doctors, patient_info, insurance_info)
+    # print(f"\nCompleted {len(results)} calls:")
+    # for result in results:
+    #     doctor_name = result.get('doctor_info', {}).get('title', 'Unknown')
+    #     print(f"- {doctor_name}: {result['status']} - {result['message']}")
+    
     print("Appointment booking process completed.")
 if __name__ == "__main__":
     main()
