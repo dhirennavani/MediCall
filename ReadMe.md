@@ -6,7 +6,7 @@ Built in under 24 hours at the Meta LLaMA 4 Hackathon.
 
 ---
 
-**[Watch the Demo](https://lnkd.in/gyB8umeX)**
+**[![Watch The Demo](https://img.youtube.com/vi/vYD_lYmHOU0/0.jpg)](https://youtu.be/vYD_lYmHOU0)**
 
 ---
 
